@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make the most of Claude Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Playfair+Display:wght@700;900&family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #CC112C;
+    --ink: #1E1E2E;
+    --paper: #FAFAFA;
+    --mustard: #FFF38D;
+    --lav: rgba(229,223,248,0.45);
+    --green: #10b981;
+    --muted: #55555f;
+    --line: #e7e4dc;
+    --nav-w: 230px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  /* full-width brand band, every slide */
+  #band {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 40px;
+    background: var(--red);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    font-family: "Anton", sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: 0.6px;
+    z-index: 40;
+  }
+  #band.exercise { background: var(--green); }
+
+  .slide {
+    display: none;
+    min-height: 100vh;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 14px;
+    padding: 84px 8vw 64px calc(var(--nav-w) + 4vw);
+  }
+  .slide.active { display: flex; }
+  .slide[data-type="cover"], .slide[data-type="section"] { justify-content: center; }
+
+  /* headlines */
+  h1 {
+    font-family: "Playfair Display", serif;
+    font-weight: 900;
+    color: var(--ink);
+    font-size: clamp(2rem, 4.4vw, 46px);
+    line-height: 1.12;
+    letter-spacing: 0;
+    margin-bottom: 0.5em;
+    max-width: 20ch;
+  }
+  h1 .hl, h1 b { color: var(--red); font-weight: 900; }
+  h1 code { background: transparent; color: inherit; padding: 0; font-family: inherit; }
+  .slide[data-type="cover"] h1, .pitch { color: var(--red); font-size: clamp(2.6rem, 6vw, 60px); }
+  .slide[data-type="cover"] h1 .hl, .pitch .hl { color: var(--red); }
+  .slide[data-type="section"] h1 { color: var(--red); font-size: clamp(2.4rem, 5.4vw, 54px); margin-bottom: 0.7em; }
+  .slide[data-type="section"] h1 .hl { color: var(--red); }
+
+  /* mustard capsule (kicker / badge) */
+  .kicker {
+    align-self: flex-start;
+    background: var(--mustard);
+    color: var(--ink);
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 6px 16px;
+    margin-bottom: 1em;
+  }
+
+  .sub {
+    font-size: clamp(1.15rem, 2.1vw, 22px);
+    color: var(--ink);
+    max-width: 48ch;
+    line-height: 1.5;
+  }
+  .slide[data-type="section"] .sub { color: var(--muted); }
+  .for-who {
+    font-size: clamp(1rem, 1.9vw, 20px);
+    color: var(--muted);
+    margin-bottom: 3.2vh;
+  }
+  .foot {
+    font-size: clamp(0.95rem, 1.6vw, 17px);
+    color: var(--muted);
+    line-height: 1.55;
+    max-width: 82ch;
+  }
+
+  /* lavender callout — one key idea per slide */
+  .callout {
+    background: var(--lav);
+    border-left: 4px solid var(--red);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 22px;
+    font-size: 0.9em;
+    line-height: 1.5;
+    color: var(--ink);
+    max-width: 62ch;
+  }
+  .callout b, .callout .hl { color: var(--red); font-weight: 700; }
+  .callout q { font-style: italic; font-weight: 600; }
+  .callout .src { display: block; margin-top: 8px; font-size: 0.82em; color: var(--muted); }
+  .callout .src a { color: var(--red); text-decoration: underline; }
+
+  /* inline code / commands — ink pill */
+  code, .cmd {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 600;
+    font-size: 0.85em;
+    background: var(--ink);
+    color: #fff;
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+
+  /* numbered points */
+  .tests { display: flex; flex-direction: column; gap: clamp(0.7rem, 1.9vh, 1.3rem); }
+  .test { display: flex; gap: 16px; align-items: baseline; }
+  .test .n {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 600;
+    font-size: clamp(1.1rem, 2.6vh, 1.5rem);
+    color: var(--red);
+    min-width: 1.6ch;
+  }
+  .test .body { font-size: clamp(1rem, 2.3vh, 1.35rem); line-height: 1.45; max-width: 62ch; color: var(--ink); }
+  .test .body b { font-weight: 800; color: var(--ink); }
+  .test .body span { color: var(--muted); }
+  .test .body a { color: var(--red); text-decoration: underline; text-underline-offset: 2px; }
+
+  /* two-column goes-in / stays-out */
+  .split { display: flex; gap: 2.6vw; }
+  .half {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 3vh 1.8vw;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(30,30,46,0.05);
+  }
+  .half .label { font-weight: 800; font-size: clamp(1.15rem, 2.2vw, 1.6rem); margin-bottom: 1.4vh; }
+  .half.good { border-top: 4px solid var(--green); }
+  .half.good .label { color: var(--green); }
+  .half.bad { border-top: 4px solid var(--red); }
+  .half.bad .label { color: var(--red); }
+  .clist { list-style: none; display: flex; flex-direction: column; gap: 1.2vh; }
+  .clist li {
+    font-size: clamp(1rem, 1.8vw, 1.3rem);
+    line-height: 1.3;
+    color: var(--ink);
+    display: flex;
+    gap: 0.55em;
+    align-items: baseline;
+  }
+  .clist li::before { font-weight: 900; flex-shrink: 0; }
+  .half.good .clist li::before { content: "\2713"; color: var(--green); }
+  .half.bad .clist li::before { content: "\2717"; color: var(--red); }
+  .opt { color: var(--green); font-weight: 700; }
+  .optnote { margin-top: 1.4vh; font-size: clamp(0.85rem, 1.4vw, 1.05rem); color: var(--muted); }
+
+  /* role / recap cards */
+  .roles { display: flex; gap: 1.8vw; }
+  .rcard {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 2.6vh 1.5vw;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(30,30,46,0.05);
+  }
+  .rcard .rlabel { font-weight: 800; font-size: clamp(1.05rem, 1.9vw, 1.4rem); color: var(--red); margin-bottom: 0.6vh; }
+  .rcard .rdesc { font-size: clamp(0.85rem, 1.3vw, 1.02rem); color: var(--muted); line-height: 1.35; margin-bottom: 1.6vh; padding-bottom: 1.4vh; border-bottom: 1px solid var(--line); }
+  .rlist { list-style: none; display: flex; flex-direction: column; gap: 1.3vh; }
+  .rlist li {
+    font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+    line-height: 1.35;
+    color: var(--ink);
+    display: flex;
+    gap: 0.5em;
+    align-items: baseline;
+  }
+  .rlist li::before { content: "\2192"; color: var(--red); font-weight: 900; flex-shrink: 0; }
+
+  /* code / template card */
+  .doc {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    max-width: 800px;
+    overflow: hidden;
+    box-shadow: 0 6px 20px rgba(30,30,46,0.05);
+  }
+  .doc .bar {
+    background: var(--red);
+    color: #fff;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.55em 1.1em;
+  }
+  .doc pre {
+    font-family: "JetBrains Mono", monospace;
+    font-size: clamp(0.78rem, 1.35vh, 0.98rem);
+    line-height: 1.45;
+    padding: 1.4vh 1.4em;
+    white-space: pre-wrap;
+    color: var(--ink);
+  }
+  .doc .cols { display: flex; gap: 1.6em; }
+  .doc .cols pre { flex: 1; min-width: 0; }
+  .doc .cols pre + pre { border-left: 1px solid var(--line); }
+  .doc pre .h { font-weight: 600; color: var(--red); }
+  .doc pre .ph { color: var(--muted); font-style: italic; }
+
+  /* download button */
+  .dlrow { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .dlbtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--red);
+    color: #fff;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 22px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(204,17,44,0.25);
+    transition: transform 0.08s ease;
+  }
+  .dlbtn:hover { transform: translateY(-1px); }
+  .dlbtn:active { transform: translateY(0); }
+
+  /* tables (template-ready) */
+  table { font-size: 20px; table-layout: fixed; width: 100%; border-collapse: collapse; }
+  thead th { background: var(--red); color: #fff; font-weight: 600; }
+  th, td { padding: 6px 16px; line-height: 1.3; word-break: break-word; text-align: left; border: 1px solid var(--line); }
+  td { color: var(--ink); }
+
+  /* cover layout */
+  .pitch { font-family: "Playfair Display", serif; font-weight: 900; line-height: 1.08; margin-bottom: 1.4vh; max-width: 18ch; }
+  .topic-list { display: flex; flex-direction: column; gap: clamp(1rem, 2.8vh, 2rem); }
+  .topic-item { display: grid; grid-template-columns: max-content 1fr; column-gap: 1.6vw; align-items: baseline; }
+  .topic-item .num { font-family: "JetBrains Mono", monospace; font-size: clamp(1.5rem, 3.6vh, 2.4rem); font-weight: 600; color: var(--red); line-height: 1; }
+  .topic-item .tname { font-family: "Playfair Display", serif; font-size: clamp(1.35rem, 3.2vh, 2rem); font-weight: 900; line-height: 1; }
+  .topic-item .tdesc { font-size: clamp(1rem, 2.1vh, 1.35rem); color: var(--muted); line-height: 1.35; margin-top: 0.7vh; }
+  .title-layout { display: flex; align-items: center; gap: 4vw; width: 100%; }
+  .title-main { flex: 1; min-width: 0; }
+  .title-portrait { flex-shrink: 0; }
+  .title-portrait img {
+    width: clamp(220px, 24vw, 360px);
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    box-shadow: 8px 8px 0 var(--red);
+  }
+  .who { margin-top: 3.2vh; border-top: 2px solid var(--line); padding-top: 2.2vh; }
+  .who .name { font-family: "Playfair Display", serif; font-size: clamp(1.2rem, 2.5vh, 1.6rem); font-weight: 900; }
+  .who .role { font-size: clamp(1rem, 2vh, 1.3rem); color: var(--muted); margin-top: 0.5vh; }
+
+  /* proof: built tools */
+  .tools { display: grid; grid-template-columns: 1fr 1fr; gap: 2.6vw; }
+  .tool { display: flex; flex-direction: column; }
+  .tool .shot {
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(30,30,46,0.06);
+    background: #fff;
+    aspect-ratio: 16 / 9;
+    max-height: 30vh;
+    overflow: hidden;
+  }
+  .tool .shot img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tool .shot::before {
+    content: attr(data-drop);
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.9rem; color: var(--muted); text-align: center; padding: 1em;
+  }
+  .tool h3 { font-family: "Playfair Display", serif; font-size: clamp(1.15rem, 2.2vw, 1.7rem); font-weight: 900; margin-top: 1.8vh; }
+  .tool p { font-size: clamp(0.95rem, 1.6vw, 1.25rem); color: var(--muted); line-height: 1.45; margin-top: 0.7vh; }
+
+  /* questions / connect slide */
+  .qa { display: flex; align-items: center; gap: 5vw; width: 100%; }
+  .qa-main { flex: 1; min-width: 0; }
+  .qa-main h1 { font-size: clamp(2.6rem, 6vw, 60px); margin-bottom: 0.6em; }
+  .qa-card { flex-shrink: 0; }
+  .qa-card img {
+    width: clamp(260px, 30vw, 400px);
+    height: auto;
+    display: block;
+    border-radius: 20px;
+    box-shadow: 8px 8px 0 var(--red);
+  }
+
+  /* fixed chrome */
+  .year, .counter {
+    position: fixed;
+    bottom: 26px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    z-index: 30;
+  }
+  .year { left: calc(var(--nav-w) + 4vw); font-weight: 600; color: var(--red); }
+  .counter { right: 32px; }
+
+  /* side navigation */
+  #toc {
+    position: fixed;
+    left: 0; top: 40px;
+    height: calc(100vh - 40px);
+    width: var(--nav-w);
+    background: #fff;
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    padding: 2.6vh 0 3vh;
+    z-index: 50;
+  }
+  #toc .toc-head {
+    font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; padding: 0 22px 2vh;
+  }
+  .toc-item {
+    display: flex; gap: 10px; align-items: baseline; width: 100%;
+    text-align: left; background: none; border: 0; cursor: pointer;
+    font-family: "Inter", sans-serif; color: var(--muted);
+    font-size: 0.9rem; line-height: 1.25; padding: 5px 22px;
+  }
+  .toc-item .tn { font-family: "JetBrains Mono", monospace; font-size: 0.7rem; color: #b9b4a6; min-width: 1.6em; text-align: right; flex-shrink: 0; }
+  .toc-item:hover { color: var(--ink); background: rgba(30,30,46,0.04); }
+  .toc-item.active { color: var(--red); font-weight: 700; }
+  .toc-item.active .tn { color: var(--red); }
+  .toc-item.sec { margin-top: 1.4vh; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.8rem; }
+  body.nav-hidden #toc { display: none; }
+  body.nav-hidden .slide { padding-left: 8vw; }
+  body.nav-hidden .year { left: 8vw; }
+</style>
+</head>
+<body>
+
+<div id="band">Co-Work &amp;</div>
+
+<!-- 1 · Title -->
+<section class="slide active" data-type="cover">
+  <div class="title-layout">
+  <div class="title-main">
+  <h1 class="pitch">Make <span class="hl">the most</span> of Claude Code.</h1>
+  <p class="for-who">Three features that make Claude Code work the way you do.</p>
+  <div class="topic-list">
+    <div class="topic-item">
+      <span class="num">1</span>
+      <div><div class="tname">CLAUDE.md</div><div class="tdesc">a file it reads first, so answers come out the way you want</div></div>
+    </div>
+    <div class="topic-item">
+      <span class="num">2</span>
+      <div><div class="tname">Skills</div><div class="tdesc">set up a task you repeat, so it's done your way without re-explaining</div></div>
+    </div>
+    <div class="topic-item">
+      <span class="num">3</span>
+      <div><div class="tname">Hooks</div><div class="tdesc">an automatic check, so a mistake you can't afford never slips through</div></div>
+    </div>
+  </div>
+  <div class="who">
+    <div class="name">Aniket Parihar</div>
+    <div class="role">Senior Product Manager &amp; Product Builder · 10 years in tech</div>
+  </div>
+  </div>
+  <div class="title-portrait"><img src="images/aniket.jpg" alt="Aniket Parihar"></div>
+  </div>
+</section>
+
+<!-- 1a · Proof: tools I built -->
+<section class="slide">
+  <div class="kicker">How I use Claude Code</div>
+  <h1>Tools I've <span class="hl">built with it.</span></h1>
+  <p class="sub" style="max-width:none">Since Nov 2025 I've built 10+ products with Claude Code. These two are the biggest.</p>
+  <div class="tools">
+    <div class="tool">
+      <div class="shot" data-drop="Drop screenshot: images/claudespend.png"><img src="images/claudespend.png" alt="ClaudeSpend" onerror="this.remove()"></div>
+      <h3>ClaudeSpend</h3>
+      <p>Open-source Claude Code usage tracker. Went viral on LinkedIn and Reddit. 700+ users, 494 GitHub stars.</p>
+    </div>
+    <div class="tool">
+      <div class="shot" data-drop="Drop screenshot: images/manamind.png"><img src="images/manamind.png" alt="ManaMind" onerror="this.remove()"></div>
+      <h3>ManaMind</h3>
+      <p>Marketing site for a B2B SaaS startup whose founder raised €1M. Designed and built end to end.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CLAUDE.md · section divider -->
+<section class="slide" data-type="section">
+  <div class="kicker">Part 1 of 3</div>
+  <h1>First up: <span class="hl">CLAUDE.md</span></h1>
+  <p class="sub">One file that tells Claude who you are.</p>
+</section>
+
+<!-- 5 · CLAUDE.md · the basics -->
+<section class="slide">
+  <h1>What is a <span class="hl">CLAUDE.md?</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><b>It's a <a href="https://markdownlivepreview.com/" target="_blank" rel="noopener">Markdown</a> file.</b> <span>Plain text with a few simple symbols for formatting: a # for a heading, a - for a bullet. That's all ".md" means. Opens in anything, nothing to install.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>Claude Code reads it automatically.</b> <span>CLAUDE.md is the one file it loads first, at the start of every new chat. You never attach it or paste it in.</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><b>It lives in a folder on your computer.</b> <span>Mine sits at /Users/aniket/CLAUDE.md, right in my home folder. Claude looks there and finds it on its own.</span></div></div>
+    <div class="test"><div class="n">4</div><div class="body"><b>You can have more than one.</b> <span>A global file for everything, plus one inside any project. Claude reads all that apply.</span></div></div>
+  </div>
+  <div class="callout">None of this is new. Engineers have written a README in Markdown for 20 years, so anyone who joins a project gets up to speed. CLAUDE.md is the same idea, for Claude.</div>
+</section>
+
+<!-- 5b · CLAUDE.md · show mine (live) -->
+<section class="slide">
+  <h1>My own <span class="hl">CLAUDE.md.</span></h1>
+  <p class="sub">Watch for three things: it's short, every line is a fact about me, and it tells Claude how I like to work.</p>
+</section>
+
+<!-- 5a · CLAUDE.md · why write one -->
+<section class="slide">
+  <h1>So why write <span class="hl">one?</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><b>Every new chat starts blank.</b> <span>Claude forgets who you are, what you do, and how you like things.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>So you re-explain yourself.</b> <span>The same background, typed again in every single chat.</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><b>Write it once, and you never repeat yourself again.</b> <span>Every chat starts knowing you, and answers come out yours, not generic.</span></div></div>
+  </div>
+  <div class="callout">That's the whole point. Say it once, never again.</div>
+</section>
+
+<!-- 5a · CLAUDE.md · the template -->
+<section class="slide">
+  <h1>A template to <span class="hl">start from.</span></h1>
+  <div class="doc">
+    <div class="bar">CLAUDE.md (template)</div>
+    <div class="cols">
+      <pre><span class="h"># Who I am</span>
+<span class="ph">- your role and team</span>
+<span class="ph">- the company, and what you own</span>
+<span class="ph">- "keep it plain" if that's you</span>
+
+<span class="h"># What I work on</span>
+<span class="ph">- your product, in one line</span>
+<span class="ph">- who its users are</span>
+<span class="ph">- who you work with</span></pre>
+      <pre><span class="h"># How I write</span>
+<span class="ph">- your tone for docs</span>
+<span class="ph">- the format you like</span>
+<span class="ph">- words you never want to see</span>
+
+<span class="h"># How to work with me</span>
+<span class="ph">- give me options, not essays</span>
+<span class="ph">- ask what's missing first</span>
+<span class="ph">- push back when I'm wrong</span></pre>
+    </div>
+  </div>
+  <div class="dlrow">
+    <button id="dlBtn" class="dlbtn">
+      <img src="https://api.iconify.design/lucide/download.svg?color=%23ffffff" alt="" width="18" height="18">
+      Download CLAUDE.md
+    </button>
+    <span class="foot" style="margin:0">Four sections. Fill in your own, keep it under a page.</span>
+  </div>
+</section>
+
+<!-- 5b · CLAUDE.md · in or out -->
+<section class="slide">
+  <h1>What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
+  <div class="split">
+    <div class="half good">
+      <div class="label">Goes in</div>
+      <ul class="clist">
+        <li>Your role, and what you own</li>
+        <li>Your product, and who it's for</li>
+        <li>How you want things written</li>
+        <li>How Claude should work with you</li>
+        <li>Standing limits: tools, what's confidential</li>
+      </ul>
+    </div>
+    <div class="half bad">
+      <div class="label">Stays out</div>
+      <ul class="clist">
+        <li>Vague fluff like "be strategic"</li>
+        <li>Your full resume or life story</li>
+        <li>Today's one-off task</li>
+        <li>A step-by-step how-to (that's a skill)</li>
+        <li>Passwords or anything secret</li>
+      </ul>
+    </div>
+  </div>
+  <p class="foot">The test for every line: still true next month, and useful in most chats?</p>
+</section>
+
+<!-- 5c · CLAUDE.md · the rules -->
+<section class="slide">
+  <h1>Just three simple <span class="hl">rules.</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><b>Keep it short.</b> <span>Aim for a page. Anthropic's hard ceiling is 200 lines, and past that Claude starts skipping it.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>Be specific.</b> <span>Real names, real numbers. "Our users are small merchants" beats "we have customers."</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><b>Let Claude write it.</b> <span>Just say: "Interview me, then write my CLAUDE.md."</span></div></div>
+  </div>
+  <div class="callout">Short, specific, and you barely lift a finger. That's the whole trick.</div>
+</section>
+
+<!-- Skills · section divider -->
+<section class="slide" data-type="section">
+  <div class="kicker">Part 2 of 3</div>
+  <h1>Next up: <span class="hl">Skills</span></h1>
+  <p class="sub">The file that gets a repeated task done your way.</p>
+</section>
+
+<!-- 6 · Skills · the basics -->
+<section class="slide">
+  <h1>What is a <span class="hl">skill?</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><b>Another Markdown file.</b> <span>Same plain text as CLAUDE.md. This one is called SKILL.md, and it describes one task: what it is, when to use it, and the steps.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>It lives in a skills folder.</b> <span>Mine is at /Users/aniket/.claude/skills, one small folder per skill: validate, prd, copy-check. Claude finds them on its own, nothing to attach.</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><b>Claude picks it up by itself.</b> <span>Each skill starts with a line saying when to use it. Ask for that task, and the skill kicks in. You never have to remember it exists.</span></div></div>
+    <div class="test"><div class="n">4</div><div class="body"><b>Make one per repeated task.</b> <span>The PRD, the Friday update, the interview debrief. Each gets its own file, and only the one you need loads.</span></div></div>
+  </div>
+</section>
+
+<!-- 8a · Skills · show mine (live) -->
+<section class="slide">
+  <h1>My own <span class="hl">skill.</span></h1>
+  <p class="sub">Watch for three things: it does one job, the description says when to use it, and every step is checkable.</p>
+</section>
+
+<!-- 6a · Skills · why write one -->
+<section class="slide">
+  <h1>So why write <span class="hl">one?</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><b>Some tasks come back every week.</b> <span>The PRD, the status update, the interview debrief.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>So you re-explain the how, every time.</b> <span>Your template, your tone, your steps, typed again in every chat.</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><b>Write it once, and you never re-explain again.</b> <span>You say "draft the PRD" and it comes out your way, every time.</span></div></div>
+  </div>
+</section>
+
+<!-- Skills · build one live -->
+<section class="slide">
+  <div class="kicker">Live demo</div>
+  <h1>Now, let's build <span class="hl">one.</span></h1>
+  <p class="sub">One sentence to Claude, and it writes the skill for me. I'll build a "write my weekly report" skill that turns rough notes into an organized report.</p>
+</section>
+
+<!-- 8a2 · Skills · the template -->
+<section class="slide">
+  <h1>A template to <span class="hl">start from.</span></h1>
+  <div class="doc">
+    <div class="bar">skills/your-task/SKILL.md (template)</div>
+    <pre><span class="h">name:</span> <span class="ph">one or two words, e.g. "prd"</span>
+<span class="h">description:</span> <span class="ph">what it does, in one line.</span>
+  <span class="ph">Then "Use when..." in the words you'd actually say</span>
+
+<span class="h"># Steps</span>
+<span class="ph">1. the steps in order, each one checkable</span>
+<span class="ph">2. "start with a summary" beats "make it engaging"</span>
+<span class="ph">3. end with what the finished output looks like</span></pre>
+  </div>
+  <div class="dlrow">
+    <button id="dlSkill" class="dlbtn">
+      <img src="https://api.iconify.design/lucide/download.svg?color=%23ffffff" alt="" width="18" height="18">
+      Download SKILL.md
+    </button>
+  </div>
+</section>
+
+<!-- 8b · Skills · in or out -->
+<section class="slide">
+  <h1>What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
+  <div class="split">
+    <div class="half good">
+      <div class="label">Goes in</div>
+      <ul class="clist">
+        <li>Just one task, like "draft my weekly report" <span class="opt">*</span></li>
+        <li>The everyday words you'd say to trigger it <span class="opt">*</span></li>
+        <li>How you want the task done, step by step <span class="opt">*</span></li>
+        <li>What you want at the end, like an email or a one-pager</li>
+        <li>Anything it must never break, like "always under a page"</li>
+      </ul>
+      <p class="optnote"><span class="opt">*</span> the must-haves, the rest is optional</p>
+    </div>
+    <div class="half bad">
+      <div class="label">Stays out</div>
+      <ul class="clist">
+        <li>A second task (that's a new skill of its own)</li>
+        <li>Fuzzy instructions like "make it good"</li>
+        <li>Anything you'd do differently each time</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8d · Skills · use cases by role -->
+<section class="slide">
+  <h1>What could <span class="hl">yours be?</span></h1>
+  <p class="sub">A skill is any task you do the same way every week. A few, by job:</p>
+  <div class="roles">
+    <div class="rcard">
+      <div class="rlabel">Product manager</div>
+      <ul class="rlist">
+        <li>Draft a PRD from rough notes</li>
+        <li>Write the weekly update</li>
+        <li>Turn interview notes into themes</li>
+      </ul>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">Sales &amp; marketing</div>
+      <ul class="rlist">
+        <li>Turn a call into a follow-up email</li>
+        <li>Write a LinkedIn post from a blog</li>
+        <li>Fill a proposal from your template</li>
+      </ul>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">Customer service</div>
+      <ul class="rlist">
+        <li>Reply to a ticket in your tone</li>
+        <li>Summarize a long complaint thread</li>
+        <li>Write a help doc from a fix</li>
+      </ul>
+    </div>
+  </div>
+  <p class="foot">Tip: let Claude write it for you. Ask, "What do I keep repeating?" Pick the ones you do the same way each time, then tell Claude, "please turn them into skills."</p>
+</section>
+
+<!-- Hooks · section divider -->
+<section class="slide" data-type="section">
+  <div class="kicker">Part 3 of 3</div>
+  <h1>Last up: <span class="hl">Hooks</span></h1>
+  <p class="sub">The check that runs on its own, every single time.</p>
+</section>
+
+<!-- 7 · Hooks · the basics -->
+<section class="slide">
+  <h1>What is a <span class="hl">hook?</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><span>It's a tiny script that Claude Code runs for you.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><span>It does one of two things: a task for you, like sending a desktop notification when Claude finishes, or blocking a mistake, like stopping a bad prompt before it goes in.</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><span>The hook sits in a hooks folder, mine is at /Users/aniket/.claude/hooks, and a separate settings file tells Claude Code when to run it.</span></div></div>
+  </div>
+</section>
+
+<!-- 7b · Hooks · show mine (live) -->
+<section class="slide">
+  <h1>My own <span class="hl">hook.</span></h1>
+  <p class="sub">Watch for three things: it runs on every prompt I send, the script is dead simple, and I gave myself a way past it.</p>
+</section>
+
+<!-- 7a · Hooks · why write one -->
+<section class="slide">
+  <h1>So why write <span class="hl">one?</span></h1>
+  <div class="tests">
+    <div class="test"><div class="n">1</div><div class="body"><b>A written rule can be missed.</b> <span>The rules in your CLAUDE.md and skills are ones Claude reads and remembers, most of the time, but not always.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>A hook can't be missed.</b> <span>A hook is a script, not a rule Claude has to remember, so it just runs on its own, every single time.</span></div></div>
+    <div class="test"><div class="n">3</div><div class="body"><b>So use it for anything that should always happen.</b> <span>Block a mistake, like customer data slipping into a prompt. Or do something helpful, like a notification after Claude Code finishes the work.</span></div></div>
+  </div>
+  <div class="callout"><q>Hooks&hellip; ensure certain actions always happen.</q><span class="src"><a href="https://code.claude.com/docs/en/hooks-guide" target="_blank" rel="noopener">Claude Code hooks documentation</a></span></div>
+</section>
+
+<!-- Hooks · build one live -->
+<section class="slide">
+  <div class="kicker">Live demo</div>
+  <h1>Now, let's build <span class="hl">one.</span></h1>
+  <p class="sub">Same idea, for a hook. I'll build one that blocks any prompt with an email or phone number, the personal data you should never paste into AI, then watch it stop me in real time.</p>
+</section>
+
+<!-- 7c · Hooks · the template -->
+<section class="slide">
+  <h1>A template to <span class="hl">start from.</span></h1>
+  <div class="doc">
+    <div class="bar">the hook: When / Then</div>
+    <pre><span class="h">When:</span> <span class="ph">the moment it fires</span>
+
+<span class="h">Then:</span> <span class="ph">what happens</span></pre>
+  </div>
+  <div class="dlrow">
+    <button id="dlHook" class="dlbtn">
+      <img src="https://api.iconify.design/lucide/download.svg?color=%23ffffff" alt="" width="18" height="18">
+      Download hook.sh
+    </button>
+    <span class="foot" style="margin:0">A ready example. Save it to your hooks folder, then ask Claude to switch it on.</span>
+  </div>
+</section>
+
+<!-- 7d · Hooks · in or out -->
+<section class="slide">
+  <h1>What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
+  <div class="split">
+    <div class="half good">
+      <div class="label">Goes in</div>
+      <ul class="clist">
+        <li>A clear trigger, when it should run, like "when Claude finishes"</li>
+        <li>Only one job: stop a mistake, or do a task</li>
+        <li>If it blocks something, the check must be a simple yes or no, like "is there a customer name in it?"</li>
+        <li>If it blocks something, what to fix and a way past it</li>
+      </ul>
+    </div>
+    <div class="half bad">
+      <div class="label">Stays out</div>
+      <ul class="clist">
+        <li>Several jobs crammed into one</li>
+        <li>A judgment call, like "does this sound good?"</li>
+        <li>A block with no way past it</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 7f · Hooks · use cases by role -->
+<section class="slide">
+  <h1>What could <span class="hl">yours be?</span></h1>
+  <p class="sub">A hook is one dumb check on the mistake you can't afford. A few, by job:</p>
+  <div class="roles">
+    <div class="rcard">
+      <div class="rlabel">Product manager</div>
+      <ul class="rlist">
+        <li>Block any prompt with a customer name</li>
+        <li>Stop a PRD saving with no success metrics</li>
+        <li>Bounce a spec over your page limit</li>
+      </ul>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">Sales &amp; marketing</div>
+      <ul class="rlist">
+        <li>Block a post that names unreleased pricing</li>
+        <li>Stop an email with a competitor's name</li>
+        <li>Bounce a LinkedIn post over the character limit</li>
+      </ul>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">Customer service</div>
+      <ul class="rlist">
+        <li>Block a reply with an internal note in it</li>
+        <li>Stop a message with a full card number</li>
+        <li>Bounce a reply missing the ticket number</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 8e · Recap: all three side by side -->
+<section class="slide">
+  <h1>All three, <span class="hl">side by side.</span></h1>
+  <div class="roles">
+    <div class="rcard">
+      <div class="rlabel">CLAUDE.md</div>
+      <div class="rdesc">Facts about you. Read at the start of every chat.</div>
+      <ul class="rlist">
+        <li>"I'm a PM on the payments team"</li>
+        <li>"Write plain, no jargon"</li>
+        <li>"Who are my customers"</li>
+      </ul>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">A skill</div>
+      <div class="rdesc">One repeated task, done your way. Fires when you ask.</div>
+      <ul class="rlist">
+        <li>"Draft my PRD"</li>
+        <li>"Write my weekly update"</li>
+        <li>"Turn interview notes into themes"</li>
+      </ul>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">A hook</div>
+      <div class="rdesc">One check that can't fail. Runs by itself, every time.</div>
+      <ul class="rlist">
+        <li>"Block a customer name in a prompt"</li>
+        <li>"No PRD without success metrics"</li>
+        <li>"Bounce a post over the limit"</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 11 · Questions / connect -->
+<section class="slide" data-type="cover">
+  <div class="qa">
+    <div class="qa-main">
+      <h1><span class="hl">Questions?</span></h1>
+      <p class="sub">If you want to connect, I'm right here.<br>Scan the code and say hi on LinkedIn.</p>
+    </div>
+    <div class="qa-card"><img src="images/linkedin-qr.jpeg" alt="Aniket Parihar · LinkedIn QR code"></div>
+  </div>
+</section>
+
+<nav id="toc"><div class="toc-head">Contents</div></nav>
+
+<div class="year">2026</div>
+<div class="counter"><span id="cur">1</span> / <span id="total"></span></div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const band = document.getElementById('band');
+  let i = 0;
+  document.getElementById('total').textContent = slides.length;
+
+  const toc = [
+    {t:"Intro"}, {t:"What I built"},
+    {t:"CLAUDE.md", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Template"}, {t:"In or out"}, {t:"The rules"},
+    {t:"Skills", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Build it live"}, {t:"Template"}, {t:"In or out"}, {t:"Yours could be"},
+    {t:"Hooks", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Build it live"}, {t:"Template"}, {t:"In or out"}, {t:"Yours could be"},
+    {t:"All three", s:1}, {t:"Questions?"}
+  ];
+  const nav = document.getElementById('toc');
+  const items = toc.map((it, idx) => {
+    const b = document.createElement('button');
+    b.className = 'toc-item' + (it.s ? ' sec' : '');
+    b.innerHTML = '<span class="tn">' + (idx + 1) + '</span><span>' + it.t + '</span>';
+    b.addEventListener('click', e => { e.stopPropagation(); show(idx); });
+    nav.appendChild(b);
+    return b;
+  });
+
+  function updateBand() {
+    if (slides[i].dataset.type === 'exercise') {
+      band.className = 'exercise';
+      band.textContent = '⌨️ HANDS-ON';
+    } else {
+      band.className = '';
+      band.textContent = 'Co-Work &';
+    }
+  }
+
+  function show(n) {
+    slides[i].classList.remove('active');
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides[i].classList.add('active');
+    document.getElementById('cur').textContent = i + 1;
+    items.forEach((b, idx) => b.classList.toggle('active', idx === i));
+    if (items[i]) items[i].scrollIntoView({ block: 'nearest' });
+    updateBand();
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') show(i + 1);
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(i - 1);
+    if (e.key === 'n' || e.key === 'N') document.body.classList.toggle('nav-hidden');
+  });
+  document.addEventListener('click', e => { if (e.target.closest('#toc') || e.target.closest('a') || e.target.closest('.dlbtn')) return; show(i + 1); });
+
+  // jump to a slide via #<n> (1-based), used for previewing
+  function fromHash() { const n = parseInt(location.hash.replace('#',''), 10); if (!isNaN(n)) show(n - 1); }
+  window.addEventListener('hashchange', fromHash);
+
+  // downloadable templates
+  const templates = {
+    dlBtn: { name: 'CLAUDE.md', body: `# Who I am
+- your role and team, e.g. "PM on the payments team"
+- the company, and what you own
+- "not technical, keep it plain" if that's you
+
+# What I work on
+- your product or area, in one line
+- who its users are
+- who you work with: eng, sales, leadership
+
+# How I write
+- your tone for docs and updates
+- the format you like: bullets, TL;DR first
+- words you never want to see
+
+# How to work with me
+- give me options, not essays
+- ask what's missing before you write
+- push back when I'm wrong
+` },
+    dlSkill: { name: 'SKILL.md', body: `---
+name: one or two words, e.g. "prd"
+description: what it does, in one line. Use when... (the words you'd actually say)
+---
+
+# Steps
+1. the steps in order, each one checkable
+2. "start with a summary" beats "make it engaging"
+3. end with what the finished output looks like
+` },
+    dlHook: { name: 'hook.sh', type: 'text/x-sh', body: `#!/bin/bash
+# your-hook: a UserPromptSubmit hook for Claude Code. (TEMPLATE)
+#
+# WHEN: this runs every time you submit a prompt, before the model sees it.
+# THEN: you decide what to check for, and what to do about it.
+#   exit 0            -> prompt goes through
+#   exit 2 + message  -> prompt is BLOCKED, message shown to you, no tokens spent
+#
+# To switch it on (or just ask Claude to do it): save in ~/.claude/hooks/,
+# run chmod +x, and register it in ~/.claude/settings.json > hooks > UserPromptSubmit.
+
+input=$(cat)
+prompt=$(jq -r '.user_input // .prompt // empty' <<<"$input")
+[[ -z "$prompt" ]] && exit 0
+
+# Escape hatch: start your prompt with raw: to send anything through untouched
+[[ "$prompt" == raw:* ]] && exit 0
+
+# --- WHEN: what should this hook look for? ---
+# if [[ "$prompt" == *WHAT_TO_CHECK_FOR* ]]; then
+
+  # --- THEN: what should happen? ---
+  # { echo "your message here"; } >&2
+  # exit 2
+
+# fi
+
+exit 0
+` }
+  };
+  Object.keys(templates).forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const t = templates[id];
+      const blob = new Blob([t.body], { type: t.type || 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = t.name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+  });
+  show(0);
+  fromHash();
+</script>
+
+</body>
+</html>
