@@ -49,8 +49,8 @@
     display: none;
     min-height: 100vh;
     flex-direction: column;
-    justify-content: flex-start;
-    gap: 14px;
+    justify-content: center;
+    gap: clamp(16px, 2.6vh, 30px);
     padding: 84px 8vw 64px calc(var(--nav-w) + 4vw);
   }
   .slide.active { display: flex; }
@@ -136,7 +136,7 @@
   }
 
   /* numbered points */
-  .tests { display: flex; flex-direction: column; gap: clamp(0.7rem, 1.9vh, 1.3rem); }
+  .tests { display: flex; flex-direction: column; gap: clamp(0.85rem, 2.4vh, 1.7rem); }
   .test { display: flex; gap: 16px; align-items: baseline; }
   .test .n {
     font-family: "JetBrains Mono", monospace;
@@ -314,12 +314,28 @@
   .qa-main h1 { font-size: clamp(2.6rem, 6vw, 60px); margin-bottom: 0.6em; }
   .qa-card { flex-shrink: 0; }
   .qa-card img {
-    width: clamp(260px, 30vw, 400px);
-    height: auto;
+    width: clamp(240px, 26vw, 340px);
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: #fff;
+    padding: 18px;
     display: block;
+    border: 2px solid var(--ink);
     border-radius: 20px;
     box-shadow: 8px 8px 0 var(--red);
   }
+  .qr-cap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    font-size: clamp(1rem, 1.7vw, 1.25rem);
+    color: var(--ink);
+  }
+  .qr-cap img { width: 26px; height: 26px; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; aspect-ratio: auto; }
 
   /* fixed chrome */
   .year, .counter {
@@ -433,7 +449,7 @@
     <div class="test"><div class="n">3</div><div class="body"><b>It lives in a folder on your computer.</b> <span>Mine sits at /Users/aniket/CLAUDE.md, right in my home folder. Claude looks there and finds it on its own.</span></div></div>
     <div class="test"><div class="n">4</div><div class="body"><b>You can have more than one.</b> <span>A global file for everything, plus one inside any project. Claude reads all that apply.</span></div></div>
   </div>
-  <div class="callout">None of this is new. Engineers have written a README in Markdown for 20 years, so anyone who joins a project gets up to speed. CLAUDE.md is the same idea, for Claude.</div>
+  <div class="callout" style="max-width:none; white-space:nowrap">None of this is new. READMEs have gotten new people up to speed for 20 years, and CLAUDE.md does the same, for Claude.</div>
 </section>
 
 <!-- 5b · CLAUDE.md · show mine (live) -->
@@ -490,7 +506,7 @@
 
 <!-- 5b · CLAUDE.md · in or out -->
 <section class="slide">
-  <h1>What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
+  <h1 style="white-space:nowrap">What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
   <div class="split">
     <div class="half good">
       <div class="label">Goes in</div>
@@ -499,7 +515,6 @@
         <li>Your product, and who it's for</li>
         <li>How you want things written</li>
         <li>How Claude should work with you</li>
-        <li>Standing limits: tools, what's confidential</li>
       </ul>
     </div>
     <div class="half bad">
@@ -507,24 +522,11 @@
       <ul class="clist">
         <li>Vague fluff like "be strategic"</li>
         <li>Your full resume or life story</li>
-        <li>Today's one-off task</li>
-        <li>A step-by-step how-to (that's a skill)</li>
+        <li>A one-time task, like today's email</li>
         <li>Passwords or anything secret</li>
       </ul>
     </div>
   </div>
-  <p class="foot">The test for every line: still true next month, and useful in most chats?</p>
-</section>
-
-<!-- 5c · CLAUDE.md · the rules -->
-<section class="slide">
-  <h1>Just three simple <span class="hl">rules.</span></h1>
-  <div class="tests">
-    <div class="test"><div class="n">1</div><div class="body"><b>Keep it short.</b> <span>Aim for a page. Anthropic's hard ceiling is 200 lines, and past that Claude starts skipping it.</span></div></div>
-    <div class="test"><div class="n">2</div><div class="body"><b>Be specific.</b> <span>Real names, real numbers. "Our users are small merchants" beats "we have customers."</span></div></div>
-    <div class="test"><div class="n">3</div><div class="body"><b>Let Claude write it.</b> <span>Just say: "Interview me, then write my CLAUDE.md."</span></div></div>
-  </div>
-  <div class="callout">Short, specific, and you barely lift a finger. That's the whole trick.</div>
 </section>
 
 <!-- Skills · section divider -->
@@ -539,7 +541,7 @@
   <h1>What is a <span class="hl">skill?</span></h1>
   <div class="tests">
     <div class="test"><div class="n">1</div><div class="body"><b>Another Markdown file.</b> <span>Same plain text as CLAUDE.md. This one is called SKILL.md, and it describes one task: what it is, when to use it, and the steps.</span></div></div>
-    <div class="test"><div class="n">2</div><div class="body"><b>It lives in a skills folder.</b> <span>Mine is at /Users/aniket/.claude/skills, one small folder per skill: validate, prd, copy-check. Claude finds them on its own, nothing to attach.</span></div></div>
+    <div class="test"><div class="n">2</div><div class="body"><b>It lives in a skills folder.</b> <span>Mine is at /Users/aniket/.claude/skills.</span></div></div>
     <div class="test"><div class="n">3</div><div class="body"><b>Claude picks it up by itself.</b> <span>Each skill starts with a line saying when to use it. Ask for that task, and the skill kicks in. You never have to remember it exists.</span></div></div>
     <div class="test"><div class="n">4</div><div class="body"><b>Make one per repeated task.</b> <span>The PRD, the Friday update, the interview debrief. Each gets its own file, and only the one you need loads.</span></div></div>
   </div>
@@ -592,7 +594,7 @@
 
 <!-- 8b · Skills · in or out -->
 <section class="slide">
-  <h1>What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
+  <h1 style="white-space:nowrap">What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
   <div class="split">
     <div class="half good">
       <div class="label">Goes in</div>
@@ -633,7 +635,7 @@
       <div class="rlabel">Sales &amp; marketing</div>
       <ul class="rlist">
         <li>Turn a call into a follow-up email</li>
-        <li>Write a LinkedIn post from a blog</li>
+        <li>Write a LinkedIn post from rough notes</li>
         <li>Fill a proposal from your template</li>
       </ul>
     </div>
@@ -710,7 +712,7 @@
 
 <!-- 7d · Hooks · in or out -->
 <section class="slide">
-  <h1>What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
+  <h1 style="white-space:nowrap">What <span style="color:var(--green)">goes in.</span> What <span style="color:var(--red)">stays out.</span></h1>
   <div class="split">
     <div class="half good">
       <div class="label">Goes in</div>
@@ -798,6 +800,40 @@
   </div>
 </section>
 
+<!-- 10b · Resources -->
+<section class="slide">
+  <h1>Resources to <span class="hl">take with you.</span></h1>
+  <div class="roles">
+    <div class="rcard">
+      <div class="rlabel">Templates</div>
+      <div class="rdesc">The three starting points from this talk. Download and fill in your own.</div>
+      <div style="display:flex; flex-direction:column; gap:1.2vh; align-items:flex-start;">
+        <button class="dlbtn" data-tpl="dlBtn">
+          <img src="https://api.iconify.design/lucide/download.svg?color=%23ffffff" alt="" width="18" height="18">
+          CLAUDE.md
+        </button>
+        <button class="dlbtn" data-tpl="dlSkill">
+          <img src="https://api.iconify.design/lucide/download.svg?color=%23ffffff" alt="" width="18" height="18">
+          SKILL.md
+        </button>
+        <button class="dlbtn" data-tpl="dlHook">
+          <img src="https://api.iconify.design/lucide/download.svg?color=%23ffffff" alt="" width="18" height="18">
+          hook.sh
+        </button>
+      </div>
+    </div>
+    <div class="rcard">
+      <div class="rlabel">Docs &amp; links</div>
+      <div class="rdesc">One page to understand each, all free.</div>
+      <ul class="rlist">
+        <li><a href="https://code.claude.com/docs/en/memory" target="_blank" rel="noopener" style="color:var(--red)">Understand CLAUDE.md</a></li>
+        <li><a href="https://code.claude.com/docs/en/skills" target="_blank" rel="noopener" style="color:var(--red)">Understand skills</a></li>
+        <li><a href="https://code.claude.com/docs/en/hooks-guide" target="_blank" rel="noopener" style="color:var(--red)">Understand hooks</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 <!-- 11 · Questions / connect -->
 <section class="slide" data-type="cover">
   <div class="qa">
@@ -805,7 +841,13 @@
       <h1><span class="hl">Questions?</span></h1>
       <p class="sub">If you want to connect, I'm right here.<br>Scan the code and say hi on LinkedIn.</p>
     </div>
-    <div class="qa-card"><img src="images/linkedin-qr.jpeg" alt="Aniket Parihar · LinkedIn QR code"></div>
+    <div class="qa-card">
+      <img src="images/linkedin-qr-cropped.png" alt="Aniket Parihar · LinkedIn QR code">
+      <div class="qr-cap">
+        <img src="https://api.iconify.design/mdi/linkedin.svg?color=%230A66C2" alt="" width="26" height="26">
+        <span>Aniket Parihar</span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -822,10 +864,10 @@
 
   const toc = [
     {t:"Intro"}, {t:"What I built"},
-    {t:"CLAUDE.md", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Template"}, {t:"In or out"}, {t:"The rules"},
+    {t:"CLAUDE.md", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Template"}, {t:"In or out"},
     {t:"Skills", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Build it live"}, {t:"Template"}, {t:"In or out"}, {t:"Yours could be"},
     {t:"Hooks", s:1}, {t:"What it is"}, {t:"Mine, live"}, {t:"Why bother"}, {t:"Build it live"}, {t:"Template"}, {t:"In or out"}, {t:"Yours could be"},
-    {t:"All three", s:1}, {t:"Questions?"}
+    {t:"All three", s:1}, {t:"Resources"}, {t:"Questions?"}
   ];
   const nav = document.getElementById('toc');
   const items = toc.map((it, idx) => {
@@ -861,7 +903,13 @@
     if (e.key === 'ArrowLeft' || e.key === 'PageUp') show(i - 1);
     if (e.key === 'n' || e.key === 'N') document.body.classList.toggle('nav-hidden');
   });
-  document.addEventListener('click', e => { if (e.target.closest('#toc') || e.target.closest('a') || e.target.closest('.dlbtn')) return; show(i + 1); });
+  document.addEventListener('click', e => {
+    if (e.target.closest('#toc') || e.target.closest('a') || e.target.closest('.dlbtn')) return;
+    // Don't advance if the user just selected text (copying, highlighting)
+    const sel = window.getSelection();
+    if (sel && sel.toString().length > 0) return;
+    show(i + 1);
+  });
 
   // jump to a slide via #<n> (1-based), used for previewing
   function fromHash() { const n = parseInt(location.hash.replace('#',''), 10); if (!isNaN(n)) show(n - 1); }
@@ -929,12 +977,11 @@ prompt=$(jq -r '.user_input // .prompt // empty' <<<"$input")
 exit 0
 ` }
   };
-  Object.keys(templates).forEach(id => {
-    const btn = document.getElementById(id);
-    if (!btn) return;
+  document.querySelectorAll('.dlbtn').forEach(btn => {
+    const t = templates[btn.dataset.tpl || btn.id];
+    if (!t) return;
     btn.addEventListener('click', e => {
       e.stopPropagation();
-      const t = templates[id];
       const blob = new Blob([t.body], { type: t.type || 'text/markdown' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
